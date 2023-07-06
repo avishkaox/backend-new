@@ -164,26 +164,44 @@ const updateProduct = asyncHandler(async (req, res) => {
 });
 
 
+
 // get list of products queries
-
 const list = asyncHandler(async (req, res, next) => {
-    let order = req.query.order ? req.query.order : 'asc';
-    let sortBy = req.query.sortBy ? req.query.sortBy : '_id';
-    let limit = req.query.limit ? parseInt(req.query.limit) : 5;
-
+    let order = req.query.order ? req.query.order : "asc";
+    let sortBy = req.query.sortBy ? req.query.sortBy : "_id";
+    let limit = req.query.limit ? parseInt(req.query.limit) : 8;
+    let searchKeyword = req.query.keyword
+      ? {
+          name: {
+            $regex: req.query.keyword,
+            $options: "i", // case-insensitive search
+          },
+        }
+      : {};
+  
     try {
-        const products = await Product.find()
-            .sort([[sortBy, order]])
-            .limit(limit)
-            .exec();
-
-        res.status(200).json(products);
+      const products = await Product.find(searchKeyword)
+        .sort([[sortBy, order]])
+        .limit(limit)
+        .exec();
+  
+      res.status(200).json(products);
     } catch (error) {
-        console.error(error);
-        res.status(500);
-        next(error);
+      console.error(error);
+      res.status(500);
+      next(error);
     }
-});
+  });
+  
+  module.exports = {
+    createProduct,
+    getProducts,
+    getProduct,
+    deleteProduct,
+    updateProduct,
+    list,
+  };
+  
 
 
 
