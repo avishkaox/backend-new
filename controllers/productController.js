@@ -62,7 +62,7 @@ const createProduct = asyncHandler(async (req, res) => {
 
 // Get all Products
 const getProducts = asyncHandler(async (req, res) => {
-    const products = await Product.find({ user: req.user.id }).sort("-createdAt");
+    const products = await Product.find({});
     res.status(200).json(products);
 });
 
@@ -169,11 +169,10 @@ const updateProduct = asyncHandler(async (req, res) => {
 const list = asyncHandler(async (req, res, next) => {
     let order = req.query.order ? req.query.order : 'asc';
     let sortBy = req.query.sortBy ? req.query.sortBy : '_id';
-    let limit = req.query.limit ? parseInt(req.query.limit) : 7;
+    let limit = req.query.limit ? parseInt(req.query.limit) : 5;
 
     try {
         const products = await Product.find()
-            .populate('name')
             .sort([[sortBy, order]])
             .limit(limit)
             .exec();
