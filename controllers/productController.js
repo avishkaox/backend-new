@@ -5,10 +5,10 @@ const cloudinary = require('../utils/cloudinary')
 
 // Create Product
 const createProduct = asyncHandler(async (req, res) => {
-    const { name, category, quantity, price, description, soldby, purchaseprice, sold } = req.body;
+    const { name, category, quantity, price, collectlocation, soldby, purchaseprice, sold , waitingtime } = req.body;
 
     //   Validation
-    if (!name || !category || !quantity || !price || !description) {
+    if (!name || !category || !quantity || !price || !collectlocation || !soldby || !purchaseprice || !sold || !waitingtime) {
         res.status(400);
         throw new Error("Please fill in all fields");
     }
@@ -43,6 +43,13 @@ const createProduct = asyncHandler(async (req, res) => {
         throw new Error("Product already exists");
     }
 
+
+    // check if the image is empty 
+    if (!fileData.filePath) {
+        res.status(400);
+        throw new Error("Please upload an image");
+    }
+
     // Create Product
     const product = await Product.create({
         user: req.user.id,
@@ -53,7 +60,8 @@ const createProduct = asyncHandler(async (req, res) => {
         price,
         purchaseprice,
         soldby,
-        description,
+        waitingtime,
+        collectlocation,
         image: fileData,
     });
 
@@ -101,7 +109,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
 // Update Product
 const updateProduct = asyncHandler(async (req, res) => {
-    const { name, category, quantity, price, description, soldby, purchaseprice, sold } = req.body;
+    const { name, category, quantity, price, collectlocation, soldby, purchaseprice, sold , waitingtime } = req.body;
     const { id } = req.params;
 
     const product = await Product.findById(id);
@@ -111,6 +119,7 @@ const updateProduct = asyncHandler(async (req, res) => {
         res.status(404);
         throw new Error("Product not found");
     }
+
     // Match product to its user
     if (product.user.toString() !== req.user.id) {
         res.status(401);
@@ -148,9 +157,10 @@ const updateProduct = asyncHandler(async (req, res) => {
             category,
             quantity,
             price,
+            waitingtime,
             purchaseprice,
             soldby,
-            description,
+            collectlocation,
             sold,
             image: Object.keys(fileData).length === 0 ? product?.image : fileData,
         },
@@ -172,39 +182,27 @@ const list = asyncHandler(async (req, res, next) => {
     let limit = req.query.limit ? parseInt(req.query.limit) : 8;
     // search for products by key word
     let searchKeyword = req.query.keyword
-      ? {
-          name: {
-            $regex: req.query.keyword,
-            $options: "i", // case-insensitive search
-          },
+        ? {
+            name: {
+                $regex: req.query.keyword,
+                $options: "i", // case-insensitive search
+            },
         }
-      : {};
-  
+        : {};
+
     try {
-      const products = await Product.find(searchKeyword)
-        .sort([[sortBy, order]])
-        .limit(limit)
-        .exec();
-  
-      res.status(200).json(products);
+        const products = await Product.find(searchKeyword)
+            .sort([[sortBy, order]])
+            .limit(limit)
+            .exec();
+
+        res.status(200).json(products);
     } catch (error) {
-      console.error(error);
-      res.status(500);
-      next(error);
+        console.error(error);
+        res.status(500);
+        next(error);
     }
-  });
-  
-  module.exports = {
-    createProduct,
-    getProducts,
-    getProduct,
-    deleteProduct,
-    updateProduct,
-    list,
-  };
-  
-
-
+});
 
 module.exports = {
     createProduct,
@@ -212,5 +210,5 @@ module.exports = {
     getProduct,
     deleteProduct,
     updateProduct,
-    list
+    list,
 };
