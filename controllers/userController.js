@@ -6,6 +6,8 @@ const bcrypt = require('bcryptjs');
 const Token = require('../models/tokenModel');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
+const { fileSizeFormatter } = require("../utils/fileUpload");
+const cloudinary = require('../utils/cloudinary');
 
 
 
@@ -19,11 +21,35 @@ const generateToken = (id) => {
 // @desc Register user
 const registerUser = asyncHandler(
     async (req, res) => {
-        const { name, email, password , registerid , phone , role } = req.body;
+        const { name, email, password, registerid, phone, role, image } = req.body;
 
+
+
+        // Handle Image upload
+        let fileData = {};
+        if (req.file) {
+            // Save image to cloudinary
+            let uploadedFile;
+            try {
+                uploadedFile = await cloudinary.uploader.upload(req.file.path, {
+                    folder: "user images",
+                    resource_type: "image",
+                });
+            } catch (error) {
+                res.status(500);
+                throw new Error("Image could not be uploaded");
+            }
+
+            fileData = {
+                fileName: req.file.originalname,
+                filePath: uploadedFile.secure_url,
+                fileType: req.file.mimetype,
+                fileSize: fileSizeFormatter(req.file.size, 2),
+            };
+        }
 
         // validate email
-        if (!email || !name || !password ) {
+        if (!email || !name || !password) {
             res.status(400);
             throw new Error('Please fill all fields');
         }
@@ -59,6 +85,7 @@ const registerUser = asyncHandler(
             phone,
             registerid,
             role,
+            image: fileData,
         });
 
         //Genarate token
@@ -75,13 +102,13 @@ const registerUser = asyncHandler(
 
         if (user) {
 
-            const { _id, email, password, name, photo, phone, registerid , role } = user
+            const { _id, email, password, name, image, phone, registerid, role } = user
             res.status(201).json({
                 _id,
                 email,
                 password,
                 name,
-                photo,
+                image: fileData,
                 phone,
                 role,
                 registerid,
@@ -132,13 +159,13 @@ const loginUser = asyncHandler(
         });
 
         if (user && passwordIsCorrect) {
-            const { _id, email, password, name, photo, phone, registerid , role } = user;
+            const { _id, email, password, name, image, phone, registerid, role } = user;
             res.status(200).json({
                 _id,
                 email,
                 password,
                 name,
-                photo,
+                image,
                 role,
                 phone,
                 registerid,
@@ -171,7 +198,7 @@ const getUser = asyncHandler(
     async (req, res) => {
         const user = await User.findById(req.user._id)
         if (user) {
-            const { _id, name, email, phone, registerid, photo , role } = user;
+            const { _id, name, email, phone, registerid, image, role } = user;
             res.status(201).json({
                 _id,
                 name,
@@ -179,7 +206,7 @@ const getUser = asyncHandler(
                 phone,
                 role,
                 registerid,
-                photo,
+                image,
             });
         } else {
             res.status(404);
@@ -218,13 +245,13 @@ const updateUser = asyncHandler(
         const user = await User.findById(req.user._id);
 
         if (user) {
-            const { name, email, phone, registerid, photo , role } = user;
+            const { name, email, phone, registerid, image, role } = user;
             user.email = email;
             user.name = req.body.name || name;
             user.phone = req.body.phone || phone;
             user.registerid = req.body.registerid || registerid;
             user.role = req.body.role || role;
-            user.photo = req.body.photo || photo;
+            user.image = req.body.image || image;
 
 
             const updateUser = await user.save();
@@ -236,7 +263,7 @@ const updateUser = asyncHandler(
                     email: updateUser.email,
                     phone: updateUser.phone,
                     registerid: updateUser.registerid,
-                    photo: updateUser.photo,
+                    image: updateUser.image,
                     role: updateUser.role,
                 }
             );
@@ -389,6 +416,45 @@ const resetPassword = asyncHandler(
     });
 
 
+// Update user details by ID
+const updateUserById = asyncHandler(async (req, res) => {
+    const { id } = req.params; // User ID to update
+
+    // Check if the logged-in user is a manager
+    if (req.user.role !== 'manager') {
+        res.status(403);
+        throw new Error('Unauthorized: Only managers can update other users');
+    }
+
+    const userToUpdate = await User.findById(id);
+
+    if (!userToUpdate) {
+        res.status(404);
+        throw new Error('User to update not found');
+    }
+
+    // Update user details
+    userToUpdate.name = req.body.name || userToUpdate.name;
+    userToUpdate.email = req.body.email || userToUpdate.email;
+    userToUpdate.phone = req.body.phone || userToUpdate.phone;
+    userToUpdate.registerid = req.body.registerid || userToUpdate.registerid;
+    userToUpdate.role = req.body.role || userToUpdate.role;
+    userToUpdate.image = req.body.image || userToUpdate.image;
+
+    const updatedUser = await userToUpdate.save();
+
+    res.status(200).json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        registerid: updatedUser.registerid,
+        image: updatedUser.image,
+        role: updatedUser.role,
+    });
+});
+
+
 
 module.exports = {
     registerUser,
@@ -399,5 +465,6 @@ module.exports = {
     updateUser,
     updatePassword,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    updateUserById
 }

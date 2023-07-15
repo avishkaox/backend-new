@@ -23,10 +23,10 @@ const userSchema = mongoose.Schema({
         minLength: [6, "Password must be at least 6 characters"],
     },
 
-    photo: {
-        type: String,
-        required: [true, "Please add a photo to your accounts"],
-        default: 'https://images.unsplash.com/photo-1661956600684-97d3a4320e45?ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80'
+    image: {
+        type: Object,
+        required: [true, "Please add an image"],
+        default: {},
     },
     phone: {
         type: String,
@@ -35,7 +35,7 @@ const userSchema = mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['employee', 'manager' , 'cashier' , 'chef' ],
+        enum: ['employee', 'manager', 'cashier', 'chef'],
         default: 'employee'
     },
     registerid: {

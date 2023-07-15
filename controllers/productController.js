@@ -49,6 +49,11 @@ const createProduct = asyncHandler(async (req, res) => {
         throw new Error("Please upload an image");
     }
 
+    if (req.user.role !== 'manager') {
+        res.status(403);
+        throw new Error('Unauthorized: Only managers can create products');
+    }
+
     // Create Product
     const product = await Product.create({
         user: req.user.id,
@@ -77,11 +82,6 @@ const getProduct = asyncHandler(async (req, res) => {
         res.status(404);
         throw new Error("Product not found");
     }
-    // Match product to its user
-    if (product.user.toString() !== req.user.id) {
-        res.status(401);
-        throw new Error("User not authorized");
-    }
     res.status(200).json(product);
 });
 
@@ -93,11 +93,14 @@ const deleteProduct = asyncHandler(async (req, res) => {
         res.status(404);
         throw new Error("Product not found");
     }
-    // Match product to its user
-    if (product.user.toString() !== req.user.id) {
-        res.status(401);
-        throw new Error("User not authorized");
+
+    // Check if ther user role equals to manager
+
+    if (req.user.role !== 'manager') {
+        res.status(403);
+        throw new Error('Unauthorized: Only managers can delete products');
     }
+
     await product.deleteOne();
     res.status(200).json({ message: "Product deleted Successfully." });
 });
@@ -115,10 +118,10 @@ const updateProduct = asyncHandler(async (req, res) => {
         throw new Error("Product not found");
     }
 
-    // Match product to its user
-    if (product.user.toString() !== req.user.id) {
-        res.status(401);
-        throw new Error("User not authorized");
+    // check if the user role is equal to manager
+    if (req.user.role !== 'manager') {
+        res.status(403);
+        throw new Error('Unauthorized: Only managers can update products');
     }
 
     // Handle Image upload
@@ -128,7 +131,7 @@ const updateProduct = asyncHandler(async (req, res) => {
         let uploadedFile;
         try {
             uploadedFile = await cloudinary.uploader.upload(req.file.path, {
-                folder: "Resturent Management System",
+                folder: "back end App",
                 resource_type: "image",
             });
         } catch (error) {
@@ -172,11 +175,11 @@ const list = asyncHandler(async (req, res, next) => {
     // search for products by keyword
     let searchKeyword = req.query.keyword
         ? {
-              name: {
-                  $regex: req.query.keyword,
-                  $options: "i", // case-insensitive search
-              },
-          }
+            name: {
+                $regex: req.query.keyword,
+                $options: "i", // case-insensitive search
+            },
+        }
         : {};
 
     try {
