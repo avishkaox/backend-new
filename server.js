@@ -8,6 +8,7 @@ const userRoute = require("./routes/userRoute");
 const productRoute = require("./routes/productRoute");
 const cartRoute = require("./routes/cartRoute");
 const categoryRoute = require("./routes/categoryRoute")
+const itemRoute = require("./routes/itemRoute");
 const cookieParser = require('cookie-parser');
 const path = require("path");
 
@@ -29,6 +30,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api/users", userRoute);
 app.use("/api/products", productRoute);
+app.use("/api/items", itemRoute);
 app.use("/api/cart", cartRoute);
 app.use("/api/categories", categoryRoute);
 

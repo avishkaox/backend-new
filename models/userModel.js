@@ -21,7 +21,6 @@ const userSchema = mongoose.Schema({
         type: String,
         required: [true, "Please enter a password"],
         minLength: [6, "Password must be at least 6 characters"],
-        // maxLength: [100, "Password must not be more than 100 characters"],
     },
 
     photo: {
@@ -31,13 +30,17 @@ const userSchema = mongoose.Schema({
     },
     phone: {
         type: String,
-        unique: true,
         trim: true,
-        default: '+19799'
+        default: '+1979999966666'
     },
-    bio: {
+    role: {
         type: String,
-        default: "Biography",
+        enum: ['employee', 'manager' , 'cashier' , 'chef' ],
+        default: 'employee'
+    },
+    registerid: {
+        type: Number,
+        required: [true, "Please add a Register ID"],
     },
     cart: {
         type: mongoose.Schema.Types.ObjectId,

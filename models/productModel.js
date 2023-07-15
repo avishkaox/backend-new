@@ -17,28 +17,10 @@ const productSchema = mongoose.Schema(
             required: [true, "Please add a category"],
             ref: "Category",
         },
-        quantity: {
-            type: Number,
-            required: [true, "Please add a quantity"],
-        },
-        sold:{
-            type: Number,
-            default: 0
-        },
+     
         price: {
             type: Number,
             required: [true, "Please add a price"],
-            trim: true,
-        },
-        soldby: {
-            type: String,
-            enum: ["Unit", "Weight", "Volume" , "Length"],
-            required: [true, "Please add a soldby"],
-            default : "Volume"
-        },
-        purchaseprice: {
-            type: Number,
-            required: [true, "Please add a purchaseprice"],
             trim: true,
         },
         collectlocation: {

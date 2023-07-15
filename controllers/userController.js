@@ -19,11 +19,11 @@ const generateToken = (id) => {
 // @desc Register user
 const registerUser = asyncHandler(
     async (req, res) => {
-        const { name, email, password } = req.body;
+        const { name, email, password , registerid , phone , role } = req.body;
 
 
         // validate email
-        if (!email || !name || !password) {
+        if (!email || !name || !password ) {
             res.status(400);
             throw new Error('Please fill all fields');
         }
@@ -42,12 +42,23 @@ const registerUser = asyncHandler(
             throw new Error('This email has already been registered');
         }
 
+        // check if the registerid already exists
+        const registeridExists = await User.findOne({ registerid });
+
+        if (registeridExists) {
+            res.status(400);
+            throw new Error('This Registerid has already been registered');
+        }
+
 
         // Create new user
         const user = await User.create({
             name,
             email,
             password,
+            phone,
+            registerid,
+            role,
         });
 
         //Genarate token
@@ -64,7 +75,7 @@ const registerUser = asyncHandler(
 
         if (user) {
 
-            const { _id, email, password, name, photo, phone, bio } = user
+            const { _id, email, password, name, photo, phone, registerid , role } = user
             res.status(201).json({
                 _id,
                 email,
@@ -72,7 +83,8 @@ const registerUser = asyncHandler(
                 name,
                 photo,
                 phone,
-                bio,
+                role,
+                registerid,
                 token
             })
         } else {
@@ -120,15 +132,16 @@ const loginUser = asyncHandler(
         });
 
         if (user && passwordIsCorrect) {
-            const { _id, email, password, name, photo, phone, bio } = user;
+            const { _id, email, password, name, photo, phone, registerid , role } = user;
             res.status(200).json({
                 _id,
                 email,
                 password,
                 name,
                 photo,
+                role,
                 phone,
-                bio,
+                registerid,
                 token,
             });
         } else {
@@ -158,13 +171,14 @@ const getUser = asyncHandler(
     async (req, res) => {
         const user = await User.findById(req.user._id)
         if (user) {
-            const { _id, name, email, phone, bio, photo } = user;
+            const { _id, name, email, phone, registerid, photo , role } = user;
             res.status(201).json({
                 _id,
                 name,
                 email,
                 phone,
-                bio,
+                role,
+                registerid,
                 photo,
             });
         } else {
@@ -204,11 +218,12 @@ const updateUser = asyncHandler(
         const user = await User.findById(req.user._id);
 
         if (user) {
-            const { name, email, phone, bio, photo } = user;
+            const { name, email, phone, registerid, photo , role } = user;
             user.email = email;
             user.name = req.body.name || name;
             user.phone = req.body.phone || phone;
-            user.bio = req.body.bio || bio;
+            user.registerid = req.body.registerid || registerid;
+            user.role = req.body.role || role;
             user.photo = req.body.photo || photo;
 
 
@@ -220,8 +235,9 @@ const updateUser = asyncHandler(
                     name: updateUser.name,
                     email: updateUser.email,
                     phone: updateUser.phone,
-                    bio: updateUser.bio,
+                    registerid: updateUser.registerid,
                     photo: updateUser.photo,
+                    role: updateUser.role,
                 }
             );
         } else {
