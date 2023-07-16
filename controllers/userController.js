@@ -76,7 +76,6 @@ const registerUser = asyncHandler(
             throw new Error('This Registerid has already been registered');
         }
 
-
         // Create new user
         const user = await User.create({
             name,
@@ -421,10 +420,10 @@ const updateUserById = asyncHandler(async (req, res) => {
     const { id } = req.params; // User ID to update
 
     // Check if the logged-in user is a manager
-    if (req.user.role !== 'manager') {
-        res.status(403);
-        throw new Error('Unauthorized: Only managers can update other users');
-    }
+    // if (req.user.role !== 'manager') {
+    //     res.status(403);
+    //     throw new Error('Unauthorized: Only managers can update other users');
+    // }
 
     const userToUpdate = await User.findById(id);
 
@@ -455,6 +454,16 @@ const updateUserById = asyncHandler(async (req, res) => {
 });
 
 
+// Get all users
+const getAllUsers = asyncHandler(async (req, res) => {
+
+    // Fetch all users from the database
+    const users = await User.find({});
+
+    return res.status(200).json(users);
+});
+
+
 
 module.exports = {
     registerUser,
@@ -466,5 +475,6 @@ module.exports = {
     updatePassword,
     forgotPassword,
     resetPassword,
-    updateUserById
+    updateUserById,
+    getAllUsers
 }
