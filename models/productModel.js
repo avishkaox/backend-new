@@ -17,7 +17,20 @@ const productSchema = mongoose.Schema(
             required: [true, "Please add a category"],
             ref: "Category",
         },
-     
+        items: [
+            {
+                itemId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "Item",
+                    required: true,
+                },
+                quantity: {
+                    type: Number,
+                    required: true,
+                },
+            },
+        ],
+
         price: {
             type: Number,
             required: [true, "Please add a price"],

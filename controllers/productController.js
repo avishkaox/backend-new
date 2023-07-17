@@ -2,15 +2,16 @@ const asyncHandler = require("express-async-handler");
 const Product = require("../models/productModel");
 const { fileSizeFormatter } = require("../utils/fileUpload");
 const cloudinary = require('../utils/cloudinary');
+const Item = require("../models/itemModel");
 
 // Create Product
 const createProduct = asyncHandler(async (req, res) => {
-    const { name, category, price, collectlocation, waitingtime } = req.body;
+    const { name, category, price, collectlocation, waitingtime, items } = req.body;
 
     // Validation
-    if (!name || !category || !price || !collectlocation || !waitingtime) {
+    if (!name || !category || !price || !collectlocation || !waitingtime || !items || !Array.isArray(items)) {
         res.status(400);
-        throw new Error("Please fill in all fields");
+        throw new Error("Please fill in all fields and provide valid items");
     }
 
     // Handle Image upload
@@ -44,10 +45,10 @@ const createProduct = asyncHandler(async (req, res) => {
     }
 
     // Check if the image is empty
-    if (!fileData.filePath) {
-        res.status(400);
-        throw new Error("Please upload an image");
-    }
+    // if (!fileData.filePath) {
+    //     res.status(400);
+    //     throw new Error("Please upload an image");
+    // }
 
     if (req.user.role !== 'manager') {
         res.status(403);
@@ -62,11 +63,13 @@ const createProduct = asyncHandler(async (req, res) => {
         price,
         waitingtime,
         collectlocation,
+        items,
         image: fileData,
     });
 
     res.status(201).json(product);
 });
+
 
 // Get all Products
 const getProducts = asyncHandler(async (req, res) => {
@@ -197,11 +200,49 @@ const list = asyncHandler(async (req, res, next) => {
     }
 });
 
+
+const purchaseProduct = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const product = await Product.findById(id).populate("items.itemId");
+
+    // Check if the product exists
+    if (!product) {
+        res.status(404);
+        throw new Error("Product not found");
+    }
+
+    // Reduce the quantity of each associated item
+    for (const item of product.items) {
+        const { itemId, quantity } = item;
+        const itemToUpdate = await Item.findById(itemId);
+
+        // Check if the item exists
+        if (!itemToUpdate) {
+            res.status(404);
+            throw new Error(`Item not found: ${itemId}`);
+        }
+
+        // Check if the item quantity is sufficient
+        if (itemToUpdate.quantity < quantity) {
+            res.status(400);
+            throw new Error(`Insufficient quantity for item: ${itemToUpdate.name}`);
+        }
+
+        // Update the item quantity
+        itemToUpdate.quantity -= quantity;
+        await itemToUpdate.save();
+    }
+
+    res.status(200).json({ message: "Product purchased successfully" });
+});
+
 module.exports = {
     createProduct,
     getProducts,
     getProduct,
     deleteProduct,
     updateProduct,
+    purchaseProduct,
     list,
 };
