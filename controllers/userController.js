@@ -418,13 +418,7 @@ const resetPassword = asyncHandler(
 // Update user details by ID
 const updateUserById = asyncHandler(async (req, res) => {
     const { id } = req.params; // User ID to update
-
-    // Check if the logged-in user is a manager
-    // if (req.user.role !== 'manager') {
-    //     res.status(403);
-    //     throw new Error('Unauthorized: Only managers can update other users');
-    // }
-
+    
     const userToUpdate = await User.findById(id);
 
     if (!userToUpdate) {

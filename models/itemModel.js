@@ -11,7 +11,6 @@ const itemSchema = mongoose.Schema(
         name: {
             type: String,
             required: [true, "Please add a name"],
-            trim: true,
         },
         price: {
             type: Number,
@@ -26,7 +25,6 @@ const itemSchema = mongoose.Schema(
         quantity: {
             type: Number,
             required: [true, "Please add a quantity"],
-            trim: true,
         }
     },
     {

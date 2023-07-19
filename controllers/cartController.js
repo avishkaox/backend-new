@@ -29,21 +29,13 @@ const addToCart = asyncHandler(async (req, res) => {
 
     let existingItem = [];
     cart.items.map(item => {
-        if(item.productid == productid) {
+        if (item.productid == productid) {
             existingItem.push(item);
             console.log('here')
             return;
         }
     })
-// ;   return;
-    // const existingItem = null;
-    // Check if the item already exists in the cart
-    // const existingItem = cart.items.find(
-    //     item.productid.toString() === productid
-    // );
 
-    // const existingItem = _.find(cart.items, {productid: ObjectId(productid)});
-    // console.log(cart.items); return;
     if (existingItem.length > 0) {
         // If the item exists, update the quantity
         existingItem.quantity += quantity;
@@ -51,15 +43,13 @@ const addToCart = asyncHandler(async (req, res) => {
         // If the item doesn't exist, add it to the cart
         cart.items.push({ productid: productid, quantity });
     }
-    // cart.items.push({ productid: productid, quantity });
     await cart.save();
-
     res.status(201).json(cart);
 });
 
 // Get cart items
 const getCartItems = asyncHandler(async (req, res) => {
-    const cart = await Cart.findOne({ user: req.user.id }).populate({
+    const cart = await Cart.findOne({}).populate({
         path: "items.product",
         model: "Product",
     });

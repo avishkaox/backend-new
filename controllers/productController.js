@@ -6,10 +6,10 @@ const Item = require("../models/itemModel");
 
 // Create Product
 const createProduct = asyncHandler(async (req, res) => {
-    const { name, category, price, collectlocation, waitingtime, items } = req.body;
+    const { name, category, price, collectlocation, waitingtime, items, user } = req.body;
 
     // Validation
-    if (!name || !category || !price || !collectlocation || !waitingtime || !items || !Array.isArray(items)) {
+    if (!name || !category || !price || !collectlocation || !waitingtime || !items) {
         res.status(400);
         throw new Error("Please fill in all fields and provide valid items");
     }
@@ -50,21 +50,21 @@ const createProduct = asyncHandler(async (req, res) => {
     //     throw new Error("Please upload an image");
     // }
 
-    if (req.user.role !== 'manager') {
-        res.status(403);
-        throw new Error('Unauthorized: Only managers can create products');
-    }
+    // if (req.user.role !== 'manager') {
+    //     res.status(403);
+    //     throw new Error('Unauthorized: Only managers can create products');
+    // }
 
     // Create Product
     const product = await Product.create({
-        user: req.user.id,
+        user,
         name,
         category,
         price,
         waitingtime,
         collectlocation,
-        items,
-        image: fileData,
+        items: JSON.parse(items),
+        image:fileData,
     });
 
     res.status(201).json(product);
@@ -99,10 +99,10 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
     // Check if ther user role equals to manager
 
-    if (req.user.role !== 'manager') {
-        res.status(403);
-        throw new Error('Unauthorized: Only managers can delete products');
-    }
+    // if (req.user.role !== 'manager') {
+    //     res.status(403);
+    //     throw new Error('Unauthorized: Only managers can delete products');
+    // }
 
     await product.deleteOne();
     res.status(200).json({ message: "Product deleted Successfully." });
@@ -222,13 +222,6 @@ const purchaseProduct = asyncHandler(async (req, res) => {
             res.status(404);
             throw new Error(`Item not found: ${itemId}`);
         }
-
-        // Check if the item quantity is sufficient
-        if (itemToUpdate.quantity < quantity) {
-            res.status(400);
-            throw new Error(`Insufficient quantity for item: ${itemToUpdate.name}`);
-        }
-
         // Update the item quantity
         itemToUpdate.quantity -= quantity;
         await itemToUpdate.save();

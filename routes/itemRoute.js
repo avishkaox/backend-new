@@ -12,7 +12,7 @@ const {
 
 router.post("/", protect,  createItem);
 router.patch("/:id", protect, updateItem);
-router.get("/", protect, getItems);
+router.get("/", getItems);
 router.get("/list", protect, listItem);
 router.get("/:id", protect, getItem);
 router.delete("/:id", protect, deleteItem);

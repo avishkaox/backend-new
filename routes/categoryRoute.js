@@ -10,7 +10,7 @@ const {
 } = require("../controllers/categoryController");
 
 router.post("/create", protect, create);
-router.get("/", protect, getAllCategories);
+router.get("/", getAllCategories);
 router.get("/:id", protect, getCategory);
 router.patch("/:id", protect,  updateCategory);
 router.delete("/:id", protect,  deleteCategory);
