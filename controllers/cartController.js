@@ -49,25 +49,26 @@ const addToCart = asyncHandler(async (req, res) => {
 
 // Get cart items
 const getCartItems = asyncHandler(async (req, res) => {
-    const cart = await Cart.findOne({}).populate({
-        path: "items.product",
+    // Fetch all carts from the database
+    const allCarts = await Cart.find({}).populate({
+        path: "items.productid",
         model: "Product",
     });
 
-    res.status(200).json(cart);
+    res.status(200).json(allCarts);
 });
 
 // Update cart item quantity
 const updateCartItemQuantity = asyncHandler(async (req, res) => {
     const { itemId, quantity } = req.body;
 
-    const cart = await Cart.findOne({ user: req.user.id });
+    const cart = await Cart.findOne({});
     if (!cart) {
         res.status(404);
         throw new Error("Cart not found");
     }
 
-    const item = cart.items.find((item) => item.itemId.toString() === itemId);
+    const item = cart.items.find((item) => item.itemId === itemId);
     if (!item) {
         res.status(404);
         throw new Error("Item not found");
@@ -91,7 +92,7 @@ const removeCartItem = asyncHandler(async (req, res) => {
     }
 
     const itemIndex = cart.items.findIndex(
-        (item) => item._id.toString() === itemId
+        (item) => item._id === itemId
     );
     if (itemIndex === -1) {
         res.status(404);
