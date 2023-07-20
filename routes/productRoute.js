@@ -13,7 +13,7 @@ const {
 const { upload } = require("../utils/fileUpload");
 
 router.post("/", upload.single("image"), createProduct);
-router.patch("/:id", protect, upload.single("image"), updateProduct);
+router.patch("/:id", upload.single("image"), updateProduct);
 router.get("/", getProducts);
 router.get("/list",  list);
 router.get("/:id",  getProduct);

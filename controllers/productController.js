@@ -122,10 +122,10 @@ const updateProduct = asyncHandler(async (req, res) => {
     }
 
     // check if the user role is equal to manager
-    if (req.user.role !== 'manager') {
-        res.status(403);
-        throw new Error('Unauthorized: Only managers can update products');
-    }
+    // if (req.user.role !== 'manager') {
+    //     res.status(403);
+    //     throw new Error('Unauthorized: Only managers can update products');
+    // }
 
     // Handle Image upload
     let fileData = {};
