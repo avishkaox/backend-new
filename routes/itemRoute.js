@@ -10,11 +10,11 @@ const {
     listItem,
 } = require("../controllers/itemController");
 
-router.post("/", protect,  createItem);
-router.patch("/:id", protect, updateItem);
+router.post("/",  createItem);
+router.patch("/:id", updateItem);
 router.get("/", getItems);
-router.get("/list", protect, listItem);
-router.get("/:id", protect, getItem);
-router.delete("/:id", protect, deleteItem);
+router.get("/list", listItem);
+router.get("/:id", getItem);
+router.delete("/:id", deleteItem);
 
 module.exports = router;
