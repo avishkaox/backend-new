@@ -278,7 +278,13 @@ const purchaseProduct = async (req, res) => {
 
 const getAllPurchasedProducts = asyncHandler(async (req, res) => {
     const purchasedProducts = await PurchasedProduct.find({})
-        .populate("productId")
+        .populate({
+            path: 'productId',
+            populate: {
+                path: 'items.itemId', // Assuming you have an "itemId" field in the items array
+                model: 'Item',
+            },
+        })
         .exec();
 
     res.status(200).json(purchasedProducts);
