@@ -8,11 +8,13 @@ const {
     deleteItem,
     updateItem,
     listItem,
+    getItemsforbarchart,
 } = require("../controllers/itemController");
 
 router.post("/",  createItem);
 router.patch("/:id", updateItem);
 router.get("/", getItems);
+router.get("/getitemsforbarchart", getItemsforbarchart);
 router.get("/list", listItem);
 router.get("/:id", getItem);
 router.delete("/:id", deleteItem);

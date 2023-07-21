@@ -39,6 +39,17 @@ const getItems = asyncHandler(async (req, res) => {
     res.status(200).json(items);
 });
 
+
+// Get all Items
+const getItemsforbarchart = asyncHandler(async (req, res) => {
+    const items = await Item.find({});
+    const barChartData = items.map((item) => ({
+        id: item.name, // Use the item name as the identifier for the bar
+        value: item.quantity, // Use the item quantity as the value for the bar
+    }));
+    res.status(200).json(barChartData);
+});
+
 // Get single Item
 const getItem = asyncHandler(async (req, res) => {
     const item = await Item.findById(req.params.id)
@@ -140,5 +151,6 @@ module.exports = {
     getItem,
     deleteItem,
     updateItem,
+    getItemsforbarchart,
     listItem,
 };

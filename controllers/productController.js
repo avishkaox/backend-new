@@ -179,9 +179,9 @@ const list = asyncHandler(async (req, res, next) => {
 
     try {
         const products = await Product.find(searchKeyword)
-            .sort([[sortBy, order]])
-            .limit(limit)
-            .populate("category")
+            // .sort([[sortBy, order]])
+            // .limit(limit)
+            // .populate("category")
             .exec();
 
         res.status(200).json(products);
@@ -190,6 +190,27 @@ const list = asyncHandler(async (req, res, next) => {
         res.status(500);
         next(error);
     }
+});
+
+// Get all Products for Pie Chart
+const getProductsForPieChart = asyncHandler(async (req, res) => {
+    const products = await Product.find({}).populate("category");
+
+    // Group products by category and count the number of products in each category
+    const categoryCounts = products.reduce((acc, product) => {
+        const categoryId = product.category._id.toString(); // Use _id as the unique identifier
+        acc[categoryId] = (acc[categoryId] || 0) + 1;
+        return acc;
+    }, {});
+
+    // Convert the counts to the required format for the Nivo Pie Chart
+    const dataForPieChart = Object.entries(categoryCounts).map(([categoryId, count]) => ({
+        id: categoryId,
+        label: products.find((product) => product.category._id.toString() === categoryId).category.name,
+        value: count,
+    }));
+
+    res.status(200).json(dataForPieChart);
 });
 
 
@@ -230,4 +251,5 @@ module.exports = {
     updateProduct,
     purchaseProduct,
     list,
+    getProductsForPieChart
 };
