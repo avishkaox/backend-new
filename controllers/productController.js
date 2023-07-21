@@ -3,6 +3,7 @@ const Product = require("../models/productModel");
 const { fileSizeFormatter } = require("../utils/fileUpload");
 const cloudinary = require('../utils/cloudinary');
 const Item = require("../models/itemModel");
+const PurchasedProduct = require("../models/purchasedProductModel");
 
 // Create Product
 const createProduct = asyncHandler(async (req, res) => {
@@ -214,33 +215,73 @@ const getProductsForPieChart = asyncHandler(async (req, res) => {
 });
 
 
-const purchaseProduct = asyncHandler(async (req, res) => {
+const purchaseProduct = async (req, res) => {
     const { id } = req.params;
+    const { quantity } = req.body;
 
-    const product = await Product.findById(id).populate("items.itemId");
-
-    // Check if the product exists
-    if (!product) {
-        res.status(404);
-        throw new Error("Product not found");
+    // Validate the quantity
+    if (typeof quantity !== "number" || quantity <= 0) {
+        return res.status(400).json({ message: "Invalid quantity" });
     }
 
-    // Reduce the quantity of each associated item
-    for (const item of product.items) {
-        const { itemId, quantity } = item;
-        const itemToUpdate = await Item.findById(itemId);
+    try {
+        // Find the product by ID
+        const product = await Product.findById(id).populate("items.itemId");
 
-        // Check if the item exists
-        if (!itemToUpdate) {
-            res.status(404);
-            throw new Error(`Item not found: ${itemId}`);
+        // Check if the product exists
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
         }
-        // Update the item quantity
-        itemToUpdate.quantity -= quantity;
-        await itemToUpdate.save();
-    }
 
-    res.status(200).json({ message: "Product purchased successfully" });
+        // Reduce the quantity of each associated item
+        for (const item of product.items) {
+            const { itemId } = item;
+            const itemToUpdate = await Item.findById(itemId);
+
+            // Check if the item exists
+            if (!itemToUpdate) {
+                return res.status(404).json({ message: `Item not found: ${itemId}` });
+            }
+
+            // Check if the item has enough quantity to purchase
+            if (itemToUpdate.quantity < item.quantity * quantity) {
+                return res.status(400).json({ message: `Insufficient quantity for item: ${itemToUpdate.name}` });
+            }
+
+            // Update the item quantity
+            itemToUpdate.quantity -= item.quantity * quantity;
+            await itemToUpdate.save();
+        }
+
+        // Use the default value (1) for quantity if it's not provided in the request body
+        const purchasedQuantity = quantity ? parseInt(quantity) : 1;
+
+        // Save the details of the purchased product in the PurchasedProduct collection
+        const purchasedProduct = new PurchasedProduct({
+            productId: product._id,
+            purchasedDate: new Date(),
+            quantity: purchasedQuantity,
+            // You can add other relevant fields here if needed
+        });
+
+        await purchasedProduct.save();
+
+        // If everything is successful, you can send a success message or other response
+        res.status(200).json({ message: "Product purchased successfully" });
+    } catch (error) {
+        // Handle any errors that may occur during the purchase process
+        console.error("Error purchasing product:", error);
+        res.status(500).json({ message: "An error occurred during the purchase process" });
+    }
+};
+
+
+const getAllPurchasedProducts = asyncHandler(async (req, res) => {
+    const purchasedProducts = await PurchasedProduct.find({})
+        .populate("productId")
+        .exec();
+
+    res.status(200).json(purchasedProducts);
 });
 
 module.exports = {
@@ -251,5 +292,6 @@ module.exports = {
     updateProduct,
     purchaseProduct,
     list,
-    getProductsForPieChart
+    getProductsForPieChart,
+    getAllPurchasedProducts
 };
