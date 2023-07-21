@@ -64,7 +64,7 @@ const createProduct = asyncHandler(async (req, res) => {
         waitingtime,
         collectlocation,
         items: JSON.parse(items),
-        image:fileData,
+        image: fileData,
     });
 
     res.status(201).json(product);
@@ -96,14 +96,6 @@ const deleteProduct = asyncHandler(async (req, res) => {
         res.status(404);
         throw new Error("Product not found");
     }
-
-    // Check if ther user role equals to manager
-
-    // if (req.user.role !== 'manager') {
-    //     res.status(403);
-    //     throw new Error('Unauthorized: Only managers can delete products');
-    // }
-
     await product.deleteOne();
     res.status(200).json({ message: "Product deleted Successfully." });
 });

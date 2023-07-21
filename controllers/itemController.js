@@ -3,7 +3,7 @@ const Item = require("../models/itemModel");
 
 // Create Item
 const createItem = asyncHandler(async (req, res) => {
-    const { name, price, usedby , quantity } = req.body;
+    const { name, price, usedby, quantity, user } = req.body;
 
     // Validation
     if (!name || !price || !usedby || !quantity) {
@@ -11,7 +11,7 @@ const createItem = asyncHandler(async (req, res) => {
         throw new Error("Please fill in all fields");
     }
 
-    
+
 
     // Check if the Item is already uploaded
     const existingItem = await Item.findOne({ name });
@@ -21,8 +21,9 @@ const createItem = asyncHandler(async (req, res) => {
     }
 
     // Create Item
+    console.log(req.body);
     const item = await Item.create({
-        user: req.user.id,
+        user,
         name,
         price,
         usedby,
@@ -73,7 +74,7 @@ const deleteItem = asyncHandler(async (req, res) => {
 
 // Update Item
 const updateItem = asyncHandler(async (req, res) => {
-    const { name, price, usedby , quantity  } = req.body;
+    const { name, price, usedby, quantity } = req.body;
     const { id } = req.params;
 
     const item = await Item.findById(id);
@@ -85,10 +86,10 @@ const updateItem = asyncHandler(async (req, res) => {
     }
 
     // Match Item to its user
-    if (item.user.toString() !== req.user.id) {
-        res.status(401);
-        throw new Error("User not authorized");
-    }
+    // if (item.user.toString() !== req.user.id) {
+    //     res.status(401);
+    //     throw new Error("User not authorized");
+    // }
 
 
     // Update Item
@@ -96,7 +97,6 @@ const updateItem = asyncHandler(async (req, res) => {
         { _id: id },
         {
             name,
-            category,
             price,
             usedby,
             quantity,
@@ -115,11 +115,11 @@ const listItem = asyncHandler(async (req, res, next) => {
     // search for item by keyword
     let searchKeyword = req.query.keyword
         ? {
-              name: {
-                  $regex: req.query.keyword,
-                  $options: "i", // case-insensitive search
-              },
-          }
+            name: {
+                $regex: req.query.keyword,
+                $options: "i", // case-insensitive search
+            },
+        }
         : {};
 
     try {
